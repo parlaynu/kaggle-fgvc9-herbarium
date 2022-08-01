@@ -1,0 +1,23 @@
+learning_rate:
+  - 0.0001
+
+batch_size:
+  - 96
+
+peak_epoch:
+  - 2
+
+final_epoch:
+  - 10
+
+peak_scale:
+  - 8
+
+final_scale:
+  - 0.25
+
+random_seed:
+  - 1330
+
+use_amp:
+  - true

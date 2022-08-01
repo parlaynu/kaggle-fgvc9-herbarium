@@ -1,0 +1,9 @@
+ruamel.yaml==0.17.21
+jinja2==3.1.2
+pillow==9.2.0
+numpy==1.23.1
+opencv-python-headless==4.6.0.66
+pandas==1.4.3
+albumentations==1.2.0
+tensorboard==2.9.1
+lime==0.2.0.1

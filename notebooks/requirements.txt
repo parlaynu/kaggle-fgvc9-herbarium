@@ -1,0 +1,4 @@
+jupyterlab==3.4.2
+matplotlib==3.5.2
+
+

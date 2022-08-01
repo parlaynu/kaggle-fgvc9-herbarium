@@ -1,0 +1,72 @@
+{% set num_categories = 15505 %}
+{% set def_dsroot = "~/Projects/datasets/fgvc9-herbarium-2022/test_images_500" %}
+{% set def_pattern = "*/*jpg" %}
+
+runtime:
+  timestamp: {{ timestamp }}
+  run_id: {{ run_id }}
+  run_dir: {{ run_dir }}
+  use_gpu: {{ use_gpu }}
+  num_workers: {{ num_workers }}
+  time_limit: {{ time_limit }}
+  num_epochs: {{ num_epochs }}
+  batch_size: {{ batch_size }}
+  batch_limit: {{ batch_limit }}
+  pattern: "{{ pattern | default(def_pattern) }}"
+  weights_file: {{ weights_file }}
+
+
+model:
+  __target__: herbarium.model.ensemble
+  num_categories: {{ num_categories }}
+  use_gpu: {{ use_gpu | default(false) }}
+  reducer: sum
+  models:
+    - __target__: herbarium.model.mobilenet_v3_small
+      num_categories: {{ num_categories }}
+      weights_file: snapshots/1658396300-train/1658396300-train-14.pt
+    - __target__: herbarium.model.mobilenet_v3_large
+      num_categories: {{ num_categories }}
+      weights_file: snapshots/1658422439-train/1658422439-train-14.pt
+    - __target__: herbarium.model.efficientnet_v2_s
+      num_categories: {{ num_categories }}
+      weights_file: snapshots/1658268347-train/1658268347-train-14.pt
+
+
+log_writer:
+  __target__: herbarium.nodes.logger.LogWriter
+  log_dir: {{ run_dir }}
+
+
+predict_pipeline:
+  - __target__: herbarium.nodes.data.GlobDataset
+    dsroot: {{ dsroot | default(def_dsroot) }}
+    pattern: "{{ pattern | default(def_pattern) }}"
+    batch_size: {{ batch_size }}
+  - __target__: herbarium.nodes.data.BatchLimiter
+    batch_limit: {{ batch_limit }}
+    batch_size: {{ batch_size }}
+  - __target__: herbarium.nodes.data.AlbumentationsTransformer
+    transforms: 
+      - __target__: albumentations.Resize
+        height: 500
+        width: 500
+      - __target__: albumentations.GaussNoise
+        p: 1.0
+      - __target__: albumentations.Normalize
+        mean: [0.7786, 0.7569, 0.7102]
+        std: [0.2468, 0.2507, 0.2537]
+      - __target__: albumentations.pytorch.ToTensorV2
+  - __target__: herbarium.nodes.data.FiveCrop
+    height: 336
+    width: 336
+  - __target__: herbarium.nodes.data.DataLoader
+    num_workers: {{ num_workers | default(0) }}
+    batch_size: {{ batch_size }}
+    drop_last: false
+    pin_memory: {{ use_gpu }}
+  - __target__: herbarium.nodes.predict.Predictor
+    model:
+      __instance__: model
+  - __target__: herbarium.nodes.ensemble.Assembler
+    samples_per_id: 5

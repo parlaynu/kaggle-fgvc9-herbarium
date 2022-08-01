@@ -1,0 +1,46 @@
+{% set num_categories = 15505 %}
+
+
+runtime:
+  use_gpu: {{ use_gpu }}
+  num_workers: {{ num_workers }}
+  batch_size: {{ batch_size }}
+  batch_limit: {{ batch_limit }}
+  random_seed: {{ random_seed | default(1330) }}
+  num_categories: {{ num_categories }}
+
+
+swa_pipeline:
+  - __target__: herbarium.nodes.data.HerbariumDataset
+    dsroot: ~/Projects/datasets/fgvc9-herbarium-2022
+    image_dir: train_images_500
+    split: train
+    batch_size: {{ batch_size }}
+    nfolds: {{ dset_nfolds | default(5) }}
+    vfold: {{ dset_vfold | default(4) }}
+  - __target__: herbarium.nodes.data.BatchLimiter
+    batch_limit: {{ batch_limit }}
+    batch_size: {{ batch_size }}
+  - __target__: herbarium.nodes.data.AlbumentationsTransformer
+    transforms:
+      - __target__: albumentations.Flip
+        p: 0.5
+      - __target__: albumentations.Resize
+        height: 500
+        width: 500
+        p: 1.0
+      - __target__: albumentations.CenterCrop
+        height: 336 
+        width: 336
+        p: 1.0
+      - __target__: albumentations.GaussNoise
+        p: 1.0
+      - __target__: albumentations.Normalize
+        mean: [0.7786, 0.7569, 0.7102]
+        std: [0.2468, 0.2507, 0.2537]
+      - __target__: albumentations.pytorch.ToTensorV2
+  - __target__: herbarium.nodes.data.DataLoader
+    num_workers: {{ num_workers | default(0) }}
+    batch_size: {{ batch_size }}
+    drop_last: true
+    pin_memory: {{ use_gpu }}
