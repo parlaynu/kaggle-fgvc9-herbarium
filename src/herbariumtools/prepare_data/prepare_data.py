@@ -10,7 +10,7 @@ def parse_args():
     parser.add_argument("src_dir", help="location of original images")
     parser.add_argument("out_dir", help="location of resized images")
     parser.add_argument("size_spec", help="{width}x{height} - size to resize (omit one to preserve aspect ratio)", type=str)
-    parser.add_argument("crop_spec", help="{width}x{height} - size to centre crop (omit one to preserve aspect ration)", type=str, nargs='?')
+    parser.add_argument("crop_spec", help="{width}x{height} - size to centre crop (omit one to preserve aspect ration)", type=str, nargs='?', default=None)
     
     args = parser.parse_args()
     
@@ -35,7 +35,7 @@ def parse_args():
     r_width = None if len(m.group(1)) == 0 else int(m.group(1))
     r_height = None if len(m.group(2)) == 0 else int(m.group(2))
     
-    if r_width == -1 and r_height == -1:
+    if r_width is None and r_height is None:
         print("Error: must specify at least one dimension for resize")
         sys.exit(1)
 
@@ -51,7 +51,7 @@ def parse_args():
         c_width = None if len(m.group(1)) == 0 else int(m.group(1))
         c_height = None if len(m.group(2)) == 0 else int(m.group(2))
     
-        if c_width == None and c_height == None:
+        if c_width is None and c_height is None:
             print("Error: must specify at least one dimension for crop")
             sys.exit(1)
             
