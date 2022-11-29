@@ -49,13 +49,13 @@ def _named_param_groups(self):
             cprefix = ".".join(islice(n.split("."), 2))
         
         if prefix is not None and cprefix != prefix:
-            groups.append((prefix, chain(params)))
+            groups.append((prefix, chain(*params)))
             params = []
         
         params.append(p)
         prefix = cprefix
     
-    groups.append((prefix, chain(params)))
+    groups.append((prefix, chain(*params)))
     
     return reversed(groups)
 
