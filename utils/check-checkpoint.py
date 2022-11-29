@@ -13,7 +13,7 @@ def parse_cmdline():
 def check_state(state_file):
     import torch
     
-    print(f"scrubbing {state_file}")
+    print(f"checking {state_file}")
     
     state = torch.load(state_file, map_location="cpu")
     model = state['model']
